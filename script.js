@@ -1,225 +1,326 @@
-/* =========================================================
-   NASC WEA Alert Generator — Script
-   ========================================================= */
+import { templates } from './templates.js';
+import { renderTemplate, normalizeValues } from './render.js';
 
-(function () {
-  'use strict';
+const CHAR_LIMIT = 360;
+const CHAR_CAUTION = 300;
 
-  // --- Constants -------------------------------------------
+// --- State -------------------------------------------------------------------
 
-  const CHAR_LIMIT = 360;
-  const CHAR_CAUTION = 300;
+let activeTemplate = templates[0];
+let isEditMode = false;
+let editOriginalText = '';
 
-  // --- DOM references --------------------------------------
+// --- DOM refs ----------------------------------------------------------------
 
-  const agencyEl      = document.getElementById('agency');
-  const childNameEl   = document.getElementById('child-name');
-  const descriptionEl = document.getElementById('description');
-  const ageEl         = document.getElementById('age');
-  const hairEl        = document.getElementById('hair');
-  const clothingEl    = document.getElementById('clothing');
-  const locationEl    = document.getElementById('location');
-  const nonSpeakingEl = document.getElementById('non-speaking');
-  const mayHideEl     = document.getElementById('may-hide');
+const templateSelect   = document.getElementById('template-select');
+const fieldsContainer  = document.getElementById('fields-container');
+const cbContainer      = document.getElementById('checkboxes-container');
+const previewEl        = document.getElementById('alert-preview');
+const charCountEl      = document.getElementById('char-count');
+const charCounterEl    = document.getElementById('char-counter');
+const charBadgeEl      = document.getElementById('char-badge');
+const copyBtn          = document.getElementById('copy-btn');
+const editBtn          = document.getElementById('edit-btn');
+const copyConfirmEl    = document.getElementById('copy-confirm');
+const editingBadgeEl   = document.getElementById('editing-badge');
+const formPanel        = document.querySelector('.form-panel');
 
-  const previewEl     = document.getElementById('alert-preview');
-  const previewCard   = document.getElementById('preview-card');
-  const charCountEl   = document.getElementById('char-count');
-  const charCounterEl = document.getElementById('char-counter');
-  const charBadgeEl   = document.getElementById('char-badge');
-  const copyBtn       = document.getElementById('copy-btn');
-  const copyConfirmEl = document.getElementById('copy-confirm');
+// --- Template selector -------------------------------------------------------
 
-  // --- Field value reading ---------------------------------
+function populateSelector() {
+  templateSelect.innerHTML = '';
+  for (const t of templates) {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name;
+    templateSelect.appendChild(opt);
+  }
+}
 
-  function getFieldValues() {
-    return {
-      agency:      agencyEl.value.trim(),
-      childName:   childNameEl.value.trim(),
-      description: descriptionEl.value.trim(),
-      age:         ageEl.value.trim(),
-      hair:        hairEl.value.trim(),
-      clothing:    clothingEl.value.trim(),
-      location:    locationEl.value.trim(),
-      nonSpeaking: nonSpeakingEl.checked,
-      mayHide:     mayHideEl.checked,
-    };
+// --- Dynamic form rendering --------------------------------------------------
+
+function buildFieldGroup(field) {
+  const group = document.createElement('div');
+  group.className = 'field-group' + (field.type === 'number' ? ' field-group--age' : '');
+
+  const label = document.createElement('label');
+  label.htmlFor = field.id;
+  label.textContent = field.label;
+  group.appendChild(label);
+
+  if (field.hint) {
+    const hint = document.createElement('p');
+    hint.className = 'field-hint';
+    hint.textContent = field.hint;
+    group.appendChild(hint);
   }
 
-  // --- Template engine -------------------------------------
+  const input = document.createElement('input');
+  input.type = field.type || 'text';
+  input.id = field.id;
+  input.placeholder = field.placeholder || '';
+  input.autocomplete = 'off';
+  input.autocorrect = 'off';
+  input.spellcheck = false;
+  if (field.min !== undefined) input.min = field.min;
+  if (field.max !== undefined) input.max = field.max;
+  if (field.type === 'number') input.inputMode = 'numeric';
+  group.appendChild(input);
 
-  function buildAlert(v) {
-    // Build the descriptive section, skipping empty fields
-    const descParts = [];
-    if (v.childName)   descParts.push(v.childName);
-    if (v.description) descParts.push(v.description);
-    if (v.age)         descParts.push('age ' + v.age);
-    if (v.hair)        descParts.push(v.hair);
-    if (v.clothing)    descParts.push(v.clothing);
-    if (v.nonSpeaking) descParts.push('NON-SPEAKING');
+  return group;
+}
 
-    const segments = [];
+function buildCheckbox(cb) {
+  const label = document.createElement('label');
+  label.className = 'checkbox-label';
 
-    // Opening line — agency in brackets if provided
-    const opening = (v.agency ? '[' + v.agency + ']: ' : '') +
-      'MISSING CHILD with AUTISM. EXTREME DROWNING RISK.';
-    segments.push(opening);
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.id = cb.id;
+  input.checked = cb.default !== false;
 
-    if (descParts.length > 0) {
-      segments.push(descParts.join(', ') + '.');
-    }
+  const custom = document.createElement('span');
+  custom.className = 'checkbox-custom';
 
-    if (v.location) {
-      segments.push('LAST SEEN at ' + v.location + ' on foot.');
-    }
+  const text = document.createElement('span');
+  text.className = 'checkbox-text';
 
-    segments.push(
-      'SEARCH ALL WATER NOW (nearby pools/ponds/drains/spas/tanks etc. ' +
-      'even if covered or dirty) and inside cars.'
-    );
+  const strong = document.createElement('strong');
+  strong.textContent = cb.label;
 
-    if (v.mayHide) segments.push('Child may HIDE.');
+  const desc = document.createElement('span');
+  desc.className = 'checkbox-desc';
+  desc.textContent = cb.description;
 
-    segments.push('STAY AT WATER if able. IF SEEN, call 9-1-1');
+  text.appendChild(strong);
+  text.appendChild(desc);
+  label.appendChild(input);
+  label.appendChild(custom);
+  label.appendChild(text);
 
-    return segments.join(' ');
+  return label;
+}
+
+function loadTemplate(tmpl) {
+  activeTemplate = tmpl;
+
+  document.getElementById('template-desc').innerHTML = tmpl.description || '';
+
+  fieldsContainer.innerHTML = '';
+  for (const field of tmpl.fields) {
+    fieldsContainer.appendChild(buildFieldGroup(field));
   }
 
-  // --- Preview renderer ------------------------------------
-
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+  cbContainer.innerHTML = '';
+  for (const cb of tmpl.checkboxes) {
+    cbContainer.appendChild(buildCheckbox(cb));
   }
 
-  function renderWithEmphasis(alertText, v) {
-    let html = escapeHtml(alertText);
+  attachFieldListeners();
+  updatePreview();
+}
 
-    // Highlight user-entered values with subtle semi-bold emphasis
-    const dynamicValues = [
-      v.agency, v.childName, v.description,
-      v.age, v.hair, v.clothing, v.location,
-    ].filter(Boolean);
+// --- Value collection --------------------------------------------------------
 
-    for (const val of dynamicValues) {
-      const escaped = escapeHtml(val);
-      // Replace only the first occurrence
-      html = html.replace(escaped, '<span class="dynamic-field">' + escaped + '</span>');
-    }
+function getFieldValues() {
+  const values = {};
+  for (const field of activeTemplate.fields) {
+    const el = document.getElementById(field.id);
+    values[field.id] = el ? el.value.trim() : '';
+  }
+  for (const cb of activeTemplate.checkboxes) {
+    const el = document.getElementById(cb.id);
+    values[cb.id] = el ? el.checked : cb.default !== false;
+  }
+  return values;
+}
 
-    return html;
+// --- Alert generation --------------------------------------------------------
+
+function generateAlertText() {
+  const raw = getFieldValues();
+  const normalized = normalizeValues(activeTemplate.fields, raw);
+  return renderTemplate(activeTemplate.template, normalized);
+}
+
+// --- Preview + counter -------------------------------------------------------
+
+function getCharState(len) {
+  if (len > CHAR_LIMIT) return 'over';
+  if (len >= CHAR_CAUTION) return 'caution';
+  return 'safe';
+}
+
+function updateCounter(len) {
+  const state = getCharState(len);
+  charCountEl.textContent = len;
+  charCounterEl.dataset.state = state;
+
+  if (state === 'safe') {
+    charBadgeEl.hidden = true;
+  } else {
+    charBadgeEl.hidden = false;
+    charBadgeEl.textContent = state === 'caution' ? 'Near limit' : 'Over limit';
+  }
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderPreview(alertText, rawValues) {
+  let html = escapeHtml(alertText);
+  // Highlight entered field values with semi-bold
+  const vals = Object.values(rawValues).filter(v => v && typeof v === 'string');
+  for (const val of vals) {
+    const escaped = escapeHtml(val);
+    html = html.replace(escaped, '<span class="dynamic-field">' + escaped + '</span>');
+  }
+  return html;
+}
+
+function updatePreview() {
+  if (isEditMode) return;
+
+  const alertText = generateAlertText();
+  const raw = getFieldValues();
+  previewEl.innerHTML = renderPreview(alertText, raw);
+  updateCounter(alertText.length);
+  updateCopyButton(alertText.length);
+}
+
+function updateCopyButton(len) {
+  if (len > CHAR_LIMIT) {
+    copyBtn.textContent = 'Copy Anyway (Over Limit)';
+    copyBtn.classList.add('over-limit');
+  } else {
+    copyBtn.textContent = 'Copy to Clipboard';
+    copyBtn.classList.remove('over-limit');
+  }
+}
+
+// --- Edit mode ---------------------------------------------------------------
+
+function enterEditMode() {
+  const alertText = generateAlertText();
+  editOriginalText = alertText;
+
+  // Replace div with textarea
+  const ta = document.createElement('textarea');
+  ta.id = 'alert-edit';
+  ta.value = alertText;
+  ta.setAttribute('aria-label', 'Edit alert text');
+  previewEl.style.display = 'none';
+  previewEl.parentNode.insertBefore(ta, previewEl);
+
+  // Wire counter to textarea
+  ta.addEventListener('input', () => {
+    updateCounter(ta.value.length);
+    updateCopyButton(ta.value.length);
+  });
+
+  // Gray out form
+  formPanel.classList.add('form-panel--disabled');
+  editingBadgeEl.hidden = false;
+
+  editBtn.textContent = 'Reset';
+  isEditMode = true;
+}
+
+function exitEditMode(force = false) {
+  const ta = document.getElementById('alert-edit');
+  if (!ta) return;
+
+  const hasChanges = ta.value !== editOriginalText;
+  if (!force && hasChanges) {
+    if (!confirm('Discard manual edits and regenerate from fields?')) return;
   }
 
-  // --- Counter state ---------------------------------------
+  ta.remove();
+  previewEl.style.display = '';
+  formPanel.classList.remove('form-panel--disabled');
+  editingBadgeEl.hidden = true;
+  editBtn.textContent = 'Edit';
+  isEditMode = false;
 
-  function getCharState(len) {
-    if (len > CHAR_LIMIT) return 'over';
-    if (len >= CHAR_CAUTION) return 'caution';
-    return 'safe';
+  updatePreview();
+}
+
+// --- Copy to clipboard -------------------------------------------------------
+
+let copyResetTimer = null;
+
+function getAlertTextForCopy() {
+  if (isEditMode) {
+    const ta = document.getElementById('alert-edit');
+    return ta ? ta.value : '';
   }
+  return generateAlertText();
+}
 
-  const STATE_LABELS = { safe: 'OK', caution: 'CAUTION', over: 'OVER LIMIT' };
+function showCopyFeedback() {
+  copyConfirmEl.hidden = false;
+  copyConfirmEl.textContent = 'Copied!';
+  if (copyResetTimer) clearTimeout(copyResetTimer);
+  copyResetTimer = setTimeout(() => { copyConfirmEl.hidden = true; }, 2500);
+}
 
-  function updateCounter(len) {
-    const state = getCharState(len);
-    charCountEl.textContent = len;
-    charCounterEl.dataset.state = state;
-    charBadgeEl.textContent = STATE_LABELS[state];
-    previewCard.dataset.charState = state;
-  }
-
-  // --- Main update loop ------------------------------------
-
-  function updatePreview() {
-    const values = getFieldValues();
-    const alertText = buildAlert(values);
-    const len = alertText.length;
-
-    previewEl.innerHTML = renderWithEmphasis(alertText, values);
-    updateCounter(len);
-
-    // Update copy button label
-    if (len > CHAR_LIMIT) {
-      copyBtn.textContent = 'Copy Anyway (Over Limit)';
-      copyBtn.classList.add('over-limit');
-    } else {
-      copyBtn.textContent = 'Copy to Clipboard';
-      copyBtn.classList.remove('over-limit');
-    }
-  }
-
-  // --- Copy to clipboard -----------------------------------
-
-  let copyResetTimer = null;
-
-  function showCopyFeedback() {
-    copyConfirmEl.hidden = false;
-    copyConfirmEl.textContent = 'Copied!';
-
-    if (copyResetTimer) clearTimeout(copyResetTimer);
-    copyResetTimer = setTimeout(() => {
-      copyConfirmEl.hidden = true;
-    }, 2500);
-  }
-
-  async function handleCopy() {
-    const values = getFieldValues();
-    const plainText = buildAlert(values);
-
+async function handleCopy() {
+  const text = getAlertTextForCopy();
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyFeedback();
+  } catch (_err) {
     try {
-      await navigator.clipboard.writeText(plainText);
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
       showCopyFeedback();
-    } catch (_err) {
-      // Fallback for older browsers / non-HTTPS contexts
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = plainText;
-        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showCopyFeedback();
-      } catch (_fallbackErr) {
-        // If both fail, select the preview text so user can copy manually
-        const range = document.createRange();
-        range.selectNodeContents(previewEl);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        copyConfirmEl.hidden = false;
-        copyConfirmEl.textContent = 'Text selected — press Ctrl+C / Cmd+C to copy';
-      }
+    } catch (_fallbackErr) {
+      const range = document.createRange();
+      range.selectNodeContents(previewEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      copyConfirmEl.hidden = false;
+      copyConfirmEl.textContent = 'Text selected — press Ctrl+C / Cmd+C to copy';
     }
   }
+}
 
-  // --- Event wiring ----------------------------------------
+// --- Event wiring ------------------------------------------------------------
 
-  function attachListeners() {
-    const textInputs = [agencyEl, childNameEl, descriptionEl, ageEl, hairEl, clothingEl, locationEl];
-    const checkboxes = [nonSpeakingEl, mayHideEl];
+function attachFieldListeners() {
+  const inputs = fieldsContainer.querySelectorAll('input[type="text"], input[type="number"]');
+  const checkboxes = cbContainer.querySelectorAll('input[type="checkbox"]');
+  inputs.forEach(el => el.addEventListener('input', updatePreview));
+  checkboxes.forEach(el => el.addEventListener('change', updatePreview));
+}
 
-    for (const el of textInputs) {
-      el.addEventListener('input', updatePreview);
-    }
+function init() {
+  populateSelector();
 
-    for (const el of checkboxes) {
-      el.addEventListener('change', updatePreview);
-    }
+  templateSelect.addEventListener('change', () => {
+    const tmpl = templates.find(t => t.id === templateSelect.value);
+    if (tmpl) loadTemplate(tmpl);
+  });
 
-    copyBtn.addEventListener('click', handleCopy);
-  }
+  copyBtn.addEventListener('click', handleCopy);
 
-  // --- Init ------------------------------------------------
+  editBtn.addEventListener('click', () => {
+    if (isEditMode) exitEditMode();
+    else enterEditMode();
+  });
 
-  function init() {
-    attachListeners();
-    updatePreview(); // Render initial state
-  }
+  loadTemplate(activeTemplate);
+}
 
-  document.addEventListener('DOMContentLoaded', init);
-
-})();
+document.addEventListener('DOMContentLoaded', init);

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Generate properly formatted Wireless Emergency Alerts for autistic children who elope, based on the NASC SafeSearch for Autism protocol.">
-  <title>Elopement Alert Generator</title>
+  <meta name="description" content="Generate properly formatted Wireless Emergency Alerts for autistic children who elope. A tool by the National Autism Safety Council.">
+  <title>Wireless Emergency Alert Generator — National Autism Safety Council</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,156 +15,47 @@
   <header class="site-header">
     <div class="header-inner">
       <div class="header-brand">
-        <span class="header-tool-name">WEA Alert Generator</span>
+        <a href="https://www.autismsafetycouncil.org" target="_blank" rel="noopener" class="brand-link">National Autism Safety Council</a>
+        <span class="header-divider" aria-hidden="true">|</span>
+        <span class="header-tool-name">Wireless Emergency Alert Generator</span>
       </div>
     </div>
   </header>
 
   <main>
 
-    <div class="page-intro">
-      <h1>Elopement Alert Generator</h1>
-      <p>Generate a research-informed Wireless Emergency Alert for a missing autistic child. Fill in the fields below — the alert updates in real time.</p>
-    </div>
-
-    <details class="context-banner">
-      <summary>Why does the alert wording matter? <span class="summary-caret">▾</span></summary>
-      <div class="context-content">
-        <p>Standard missing child alerts don't reflect how autistic children behave when lost. The template used here incorporates the NASC <strong>S-E-A-R-C-H</strong> protocol.</p>
-        <p>
-          <a href="https://cdn.prod.website-files.com/691df36c2bfdd23b8c789f03/69a70c2680bdb2d968255577_SafeSearch%20for%20Autism.pdf" target="_blank" rel="noopener">Download the full SafeSearch for Autism protocol (PDF)</a>
-          &nbsp;·&nbsp;
-          <a href="https://www.autismsafetycouncil.org" target="_blank" rel="noopener">autismsafetycouncil.org</a>
-        </p>
-      </div>
-    </details>
-
     <div class="app-layout">
 
       <!-- FORM PANEL -->
       <section class="form-panel" aria-label="Alert fields">
-        <h2 class="panel-title">Alert Details</h2>
 
         <div class="field-group">
-          <label for="agency">Issuing agency</label>
-          <input
-            type="text"
-            id="agency"
-            placeholder="e.g. Anytown Police Dept"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >
+          <label for="template-select">Alert Template</label>
+          <select id="template-select" class="template-select"></select>
+          <p id="template-desc" class="template-desc"></p>
         </div>
 
-        <div class="field-group">
-          <label for="child-name">Child's full name</label>
-          <input
-            type="text"
-            id="child-name"
-            placeholder="First and last name"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >
-        </div>
-
-        <div class="field-group">
-          <label for="description">Physical description</label>
-          <p class="field-hint">Include race and gender (e.g., "white male", "Black female", "Hispanic male")</p>
-          <input
-            type="text"
-            id="description"
-            placeholder="e.g. white male"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >
-        </div>
-
-        <div class="field-group field-group--age">
-          <label for="age">Age</label>
-          <input
-            type="number"
-            id="age"
-            placeholder="e.g. 8"
-            min="1"
-            max="17"
-            inputmode="numeric"
-            autocomplete="off"
-          >
-        </div>
-
-        <div class="field-group">
-          <label for="hair">Hair description</label>
-          <input
-            type="text"
-            id="hair"
-            placeholder="e.g. brown hair"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >
-        </div>
-
-        <div class="field-group">
-          <label for="clothing">Clothing description</label>
-          <input
-            type="text"
-            id="clothing"
-            placeholder="e.g. blue jeans, gray t-shirt (if known)"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >
-        </div>
-
-        <div class="field-group">
-          <label for="location">Last seen location</label>
-          <p class="field-hint">Include block number and street name</p>
-          <input
-            type="text"
-            id="location"
-            placeholder="e.g. 100 block of Main St"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >
-        </div>
+        <div id="fields-container"></div>
 
         <fieldset class="behavior-fieldset">
           <legend>Behavioral traits</legend>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="non-speaking" checked>
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-text">
-              <strong>NON-SPEAKING</strong>
-              <span class="checkbox-desc">Child cannot verbally communicate or call for help</span>
-            </span>
-          </label>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="may-hide" checked>
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-text">
-              <strong>Child may HIDE</strong>
-              <span class="checkbox-desc">Child may hide from rescuers rather than approach them</span>
-            </span>
-          </label>
+          <div id="checkboxes-container"></div>
         </fieldset>
 
       </section>
 
       <!-- PREVIEW PANEL -->
       <section class="preview-panel" aria-label="Alert preview">
-        <h2 class="panel-title">Alert Preview</h2>
+        <div class="preview-panel-header">
+          <h2 class="panel-title">Alert Preview</h2>
+          <span class="editing-badge" id="editing-badge" hidden>Editing manually</span>
+        </div>
 
         <div class="preview-card" id="preview-card">
           <div class="preview-header">
             <div class="char-counter" id="char-counter" data-state="safe">
               <span id="char-count">0</span><span class="char-limit"> / 360 chars</span>
-              <span class="char-badge" id="char-badge">OK</span>
+              <span class="char-badge" id="char-badge" hidden></span>
             </div>
           </div>
 
@@ -178,12 +69,13 @@
 
           <div class="preview-actions">
             <button id="copy-btn" class="btn-copy" type="button">Copy to Clipboard</button>
+            <button id="edit-btn" class="btn-edit" type="button">Edit</button>
             <span id="copy-confirm" class="copy-confirm" aria-live="polite" hidden>Copied!</span>
           </div>
         </div>
 
         <div class="wea-note">
-          <strong>Enhanced WEA limit: 360 characters.</strong> Keep the alert in the green zone for guaranteed delivery. If over the limit, shorten the location or description.
+          <strong>Enhanced WEA limit: 360 characters.</strong> If over the limit, use the Edit button to trim the text manually.
         </div>
 
       </section>
@@ -192,9 +84,9 @@
   </main>
 
   <footer class="site-footer">
-    <p>Based on the <a href="https://www.autismsafetycouncil.org" target="_blank" rel="noopener">NASC SafeSearch for Autism</a> protocol · For emergencies, always call 9-1-1</p>
+    <p>Built for the <a href="https://www.autismsafetycouncil.org" target="_blank" rel="noopener">National Autism Safety Council</a> · For emergencies, always call 9-1-1</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
