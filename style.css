@@ -480,16 +480,6 @@ input[type="number"]:focus {
   white-space: nowrap;
 }
 
-/* WEA note */
-.wea-note {
-  font-size: 0.8125rem;
-  color: var(--color-muted);
-  line-height: 1.5;
-  padding: 0.75rem 1rem;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-border);
-}
 
 /* --- Footer ----------------------------------------------- */
 .site-footer {

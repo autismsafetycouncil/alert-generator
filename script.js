@@ -103,7 +103,6 @@ function loadTemplate(tmpl) {
 
   document.getElementById('template-desc').innerHTML = tmpl.description || '';
   document.getElementById('char-limit-display').textContent = tmpl.charLimit;
-  document.getElementById('wea-note-limit').textContent = tmpl.charLimit;
 
   fieldsContainer.innerHTML = '';
   for (const field of tmpl.fields) {
