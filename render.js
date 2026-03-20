@@ -13,11 +13,18 @@
  * @returns {string}
  */
 export function renderTemplate(templateStr, values) {
-  // Conditional blocks: {{#key}}...{{/key}} — omitted entirely if value is falsy
-  let result = templateStr.replace(
-    /\{\{#([\w-]+)\}\}([\s\S]*?)\{\{\/[\w-]+\}\}/g,
-    (_, key, content) => values[key] ? content : ''
-  );
+  // Conditional blocks: {{#key}}...{{/key}} — omitted entirely if value is falsy.
+  // Process innermost blocks first (content must not contain another {{#).
+  // Loop until no more blocks remain.
+  let result = templateStr;
+  let prev;
+  do {
+    prev = result;
+    result = result.replace(
+      /\{\{#([\w-]+)\}\}((?:(?!\{\{#)[\s\S])*?)\{\{\/[\w-]+\}\}/g,
+      (_, key, content) => values[key] ? content : ''
+    );
+  } while (result !== prev);
   // Simple substitution: {{key}}
   return result.replace(/\{\{([\w-]+)\}\}/g, (_, key) => values[key] || '');
 }

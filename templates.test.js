@@ -3,14 +3,19 @@ import assert from 'node:assert/strict';
 import { renderTemplate, normalizeHair, normalizeValues } from './render.js';
 import { templates } from './templates.js';
 
-// Helper: find template by id
-const template = templates.find(t => t.id === 'autism-elopement-360');
-assert.ok(template, 'autism-elopement-360 template must exist');
-
-// Helper: render the autism template with given values
+// Helper: find template by id and render with given values
+const template360 = templates.find(t => t.id === 'autism-elopement-360');
+assert.ok(template360, 'autism-elopement-360 template must exist');
 function render(values) {
-  const normalized = normalizeValues(template.fields, values);
-  return renderTemplate(template.template, normalized);
+  const normalized = normalizeValues(template360.fields, values);
+  return renderTemplate(template360.template, normalized);
+}
+
+const template90 = templates.find(t => t.id === 'autism-elopement-90');
+assert.ok(template90, 'autism-elopement-90 template must exist');
+function render90(values) {
+  const normalized = normalizeValues(template90.fields, values);
+  return renderTemplate(template90.template, normalized);
 }
 
 // --- normalizeHair -----------------------------------------------------------
@@ -70,7 +75,7 @@ describe('renderTemplate', () => {
   });
 });
 
-// --- Autism elopement template -----------------------------------------------
+// --- Autism elopement 360 template -------------------------------------------
 
 describe('autism-elopement-360 template', () => {
 
@@ -138,14 +143,14 @@ describe('autism-elopement-360 template', () => {
   });
 
   // Checkboxes
-  test('non-speaking: true includes NON-SPEAKING', () => {
+  test('non-speaking: true includes NONSPEAKING', () => {
     const out = render({ 'non-speaking': true });
-    assert.ok(out.includes('NON-SPEAKING'));
+    assert.ok(out.includes('NONSPEAKING'));
   });
 
-  test('non-speaking: false omits NON-SPEAKING', () => {
+  test('non-speaking: false omits NONSPEAKING', () => {
     const out = render({ 'non-speaking': false });
-    assert.ok(!out.includes('NON-SPEAKING'));
+    assert.ok(!out.includes('NONSPEAKING'));
   });
 
   test('may-hide: true includes "Child may HIDE."', () => {
@@ -185,6 +190,71 @@ describe('autism-elopement-360 template', () => {
     assert.ok(
       out.length <= 360,
       `Alert is ${out.length} characters (limit: 360):\n${out}`
+    );
+  });
+});
+
+// --- Autism elopement 90 template --------------------------------------------
+
+describe('autism-elopement-90 template', () => {
+
+  // Static text
+  test('MISSING AUTISTIC CHILD always present', () => {
+    assert.ok(render90({}).includes('MISSING AUTISTIC CHILD'));
+  });
+
+  test('DROWNING RISK always present', () => {
+    assert.ok(render90({}).includes('DROWNING RISK'));
+  });
+
+  test('CHECK WATER/CARS always present', () => {
+    assert.ok(render90({}).includes('CHECK WATER/CARS'));
+  });
+
+  test('CALL 9-1-1 always present', () => {
+    assert.ok(render90({}).includes('CALL 9-1-1'));
+  });
+
+  // Agency
+  test('agency wraps in brackets when present', () => {
+    const out = render90({ agency: 'Cary PD' });
+    assert.match(out, /^\[Cary PD\]/);
+  });
+
+  test('no bracket prefix when agency is absent', () => {
+    const out = render90({});
+    assert.match(out, /^MISSING AUTISTIC CHILD/);
+  });
+
+  // Child details
+  test('child name, age, and clothing render before static text', () => {
+    const out = render90({ 'child-name': 'Jake Smith', age: '7', clothing: 'red shirt' });
+    assert.ok(out.includes('Jake Smith, 7, red shirt. MISSING AUTISTIC CHILD'));
+  });
+
+  test('child name without age or clothing renders cleanly', () => {
+    const out = render90({ 'child-name': 'Jake Smith' });
+    assert.ok(out.includes('Jake Smith. MISSING AUTISTIC CHILD'));
+    assert.ok(!out.includes(', .'));
+  });
+
+  // Checkboxes
+  test('non-speaking: true includes NONSPEAKING', () => {
+    const out = render90({ 'non-speaking': true });
+    assert.ok(out.includes('NONSPEAKING'));
+  });
+
+  test('non-speaking: false omits NONSPEAKING', () => {
+    const out = render90({ 'non-speaking': false });
+    assert.ok(!out.includes('NONSPEAKING'));
+  });
+
+  // Smoke test — static-only render within character limit
+  test('static-only render is ≤ 90 characters', () => {
+    const out = render90({ 'non-speaking': false });
+    assert.ok(
+      out.length <= 90,
+      `Static alert is ${out.length} characters (limit: 90):\n${out}`
     );
   });
 });

@@ -13,7 +13,6 @@ export default {
   id: 'autism-elopement-360',
   name: 'Autistic Elopement — 360 characters',
   charLimit: 360,
-  charCaution: 340,
 
   description:
     'Based on the NASC <strong>SEARCH</strong> protocol. ' +
@@ -28,7 +27,7 @@ export default {
     '{{#age}}, age {{age}}{{/age}}' +
     '{{#hair}}, {{hair}}{{/hair}}' +
     '{{#clothing}}, {{clothing}}{{/clothing}}' +
-    '{{#non-speaking}}, NON-SPEAKING{{/non-speaking}}. ' +
+    '{{#non-speaking}}, NONSPEAKING{{/non-speaking}}. ' +
     '{{#location}}LAST SEEN: {{location}}. {{/location}}' +
     'SEARCH ALL WATER NOW (nearby ponds/pools/lakes/all types even if dirty) and inside cars.' +
     '{{#may-hide}} Child may HIDE.{{/may-hide}} ' +
@@ -86,7 +85,7 @@ export default {
   checkboxes: [
     {
       id: 'non-speaking',
-      label: 'NON-SPEAKING',
+      label: 'NONSPEAKING',
       description: 'Child cannot verbally communicate or call for help',
       default: true,
     },

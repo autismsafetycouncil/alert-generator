@@ -145,7 +145,7 @@ function generateAlertText() {
 
 function getCharState(len) {
   if (len > activeTemplate.charLimit) return 'over';
-  if (len >= activeTemplate.charCaution) return 'caution';
+  if (len >= Math.floor(activeTemplate.charLimit * 0.9)) return 'caution';
   return 'safe';
 }
 

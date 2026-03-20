@@ -7,7 +7,9 @@
  */
 
 import autismElopement360 from './templates/autism-elopement-360.js';
+import autismElopement90 from './templates/autism-elopement-90.js';
 
 export const templates = [
   autismElopement360,
+  autismElopement90,
 ];
