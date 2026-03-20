@@ -2,7 +2,7 @@
 
 Built for the [National Autism Safety Council](https://www.autismsafetycouncil.org).
 
-Live at: [https://doshilabs.github.io/nasc-wea/](https://doshilabs.github.io/nasc-wea/)
+Live at: [https://autismsafetycouncil.github.io/alert-generator/](https://autismsafetycouncil.github.io/alert-generator/)
 
 
 ## Background
