@@ -1,50 +1,20 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderTemplate, normalizeHair, normalizeValues } from './render.js';
+import { renderTemplate } from './render.js';
 import { templates } from './templates.js';
 
 // Helper: find template by id and render with given values
 const template360 = templates.find(t => t.id === 'autism-elopement-360');
 assert.ok(template360, 'autism-elopement-360 template must exist');
 function render(values) {
-  const normalized = normalizeValues(template360.fields, values);
-  return renderTemplate(template360.template, normalized);
+  return renderTemplate(template360.template, values);
 }
 
 const template90 = templates.find(t => t.id === 'autism-elopement-90');
 assert.ok(template90, 'autism-elopement-90 template must exist');
 function render90(values) {
-  const normalized = normalizeValues(template90.fields, values);
-  return renderTemplate(template90.template, normalized);
+  return renderTemplate(template90.template, values);
 }
-
-// --- normalizeHair -----------------------------------------------------------
-
-describe('normalizeHair', () => {
-  test('appends "hair" to a bare color', () => {
-    assert.equal(normalizeHair('brown'), 'brown hair');
-  });
-
-  test('does not double-append when "hair" already present', () => {
-    assert.equal(normalizeHair('brown hair'), 'brown hair');
-  });
-
-  test('appends "hair" to multi-word color without "hair"', () => {
-    assert.equal(normalizeHair('curly brown'), 'curly brown hair');
-  });
-
-  test('"bald" is left unchanged (only exception)', () => {
-    assert.equal(normalizeHair('bald'), 'bald');
-  });
-
-  test('case-insensitive "hair" detection', () => {
-    assert.equal(normalizeHair('Brown Hair'), 'Brown Hair');
-  });
-
-  test('empty string returns empty string', () => {
-    assert.equal(normalizeHair(''), '');
-  });
-});
 
 // --- renderTemplate ----------------------------------------------------------
 
@@ -80,66 +50,63 @@ describe('renderTemplate', () => {
 describe('autism-elopement-360 template', () => {
 
   // Agency
-  test('agency wraps in brackets when present', () => {
+  test('agency renders with colon prefix (no brackets) when present', () => {
     const out = render({ agency: 'Cary PD', 'child-name': 'Alex' });
-    assert.match(out, /^\[Cary PD\]:/);
+    assert.match(out, /^Cary PD: /);
   });
 
-  test('no bracket prefix when agency is absent', () => {
+  test('no agency prefix when agency is absent', () => {
     const out = render({ 'child-name': 'Alex' });
     assert.match(out, /^MISSING CHILD/);
   });
 
-  // Hair normalization via template
-  test('bare color in hair field gets "hair" appended', () => {
-    const out = render({ hair: 'brown' });
-    assert.ok(out.includes('brown hair'), `Expected "brown hair" in: ${out}`);
+  // Descriptor field order: name, age, race & gender, clothing, descriptor
+  test('fields render in order: name, age, race & gender, clothing, descriptor', () => {
+    const out = render({
+      'child-name': 'Jane Doe',
+      'race-gender': 'white female',
+      age: '4',
+      clothing: 'pink pajamas',
+      descriptor: 'barefoot',
+    });
+    assert.ok(
+      out.includes('Jane Doe, Age 4, white female, pink pajamas, barefoot'),
+      `Unexpected order in: ${out}`
+    );
   });
 
-  test('"brown hair" in hair field is not doubled', () => {
-    const out = render({ hair: 'brown hair' });
-    assert.ok(!out.includes('brown hair hair'), `Got double "hair" in: ${out}`);
-    assert.ok(out.includes('brown hair'));
-  });
-
-  test('"bald" in hair field is unchanged', () => {
-    const out = render({ hair: 'bald' });
-    assert.ok(out.includes('bald'));
-    assert.ok(!out.includes('bald hair'));
-  });
-
-  test('empty hair field omits hair from output', () => {
-    const out = render({ hair: '' });
-    // Should not have a dangling comma where hair would be
-    assert.ok(!out.includes(', ,'));
+  test('age renders with capitalized "Age" prefix', () => {
+    const out = render({ 'child-name': 'Alex', age: '7' });
+    assert.ok(out.includes('Alex, Age 7'), `Expected "Alex, Age 7" in: ${out}`);
   });
 
   // Location
-  test('location renders with LAST SEEN prefix', () => {
-    const out = render({ location: 'Davis Dr heading toward I-40' });
-    assert.ok(out.includes('LAST SEEN: Davis Dr heading toward I-40.'));
+  test('location renders with "Last seen near" prefix', () => {
+    const out = render({ location: '800 Hill Avenue' });
+    assert.ok(out.includes('Last seen near 800 Hill Avenue.'));
   });
 
-  test('location with leading "On" is preserved verbatim', () => {
-    const out = render({ location: 'On Davis Drive' });
-    assert.ok(out.includes('LAST SEEN: On Davis Drive.'));
-  });
-
-  test('empty location omits LAST SEEN clause', () => {
+  test('empty location omits the last seen clause', () => {
     const out = render({ location: '' });
-    assert.ok(!out.includes('LAST SEEN'));
+    assert.ok(!out.includes('Last seen near'));
+  });
+
+  // Water list (ponds before pools)
+  test('water list begins with ponds, pools', () => {
+    const out = render({});
+    assert.ok(out.includes('(ponds, pools, drains, spas, tanks - even if covered or dirty)'));
   });
 
   // Optional field skipping
   test('missing clothing produces no orphan comma', () => {
-    const out = render({ 'child-name': 'Alex', hair: 'brown', clothing: '' });
+    const out = render({ 'child-name': 'Alex', 'race-gender': 'white male', clothing: '' });
     assert.ok(!out.includes(', ,'), `Orphan comma in: ${out}`);
     assert.ok(!out.includes(',  '), `Double-space comma in: ${out}`);
   });
 
-  test('missing description is skipped cleanly', () => {
-    const out = render({ 'child-name': 'Alex', description: '', age: '7' });
-    assert.ok(out.includes('Alex, age 7'));
+  test('missing race & gender is skipped cleanly', () => {
+    const out = render({ 'child-name': 'Alex', 'race-gender': '', age: '7' });
+    assert.ok(out.includes('Alex, Age 7'));
   });
 
   // Checkboxes
@@ -169,21 +136,26 @@ describe('autism-elopement-360 template', () => {
     assert.ok(out.includes('SEARCH ALL WATER NOW'));
   });
 
-  test('STAY AT WATER if able always present', () => {
+  test('"Stay at water if safe" always present', () => {
     const out = render({});
-    assert.ok(out.includes('STAY AT WATER if able'));
+    assert.ok(out.includes('Stay at water if safe'));
+  });
+
+  test('alert ends with "IF SEEN, call 9-1-1."', () => {
+    const out = render({});
+    assert.ok(out.endsWith('IF SEEN, call 9-1-1.'), `Unexpected ending in: ${out}`);
   });
 
   // Smoke test — full alert within character limit
   test('full alert with all fields is ≤ 360 characters', () => {
     const out = render({
-      agency: 'Cary Police Dept',
-      'child-name': 'Alex Smith',
-      description: 'white male',
-      age: '7',
-      hair: 'brown',
-      clothing: 'red pajamas',
-      location: '100 block of Main St',
+      agency: 'Smithtown Police Department',
+      'child-name': 'Jane Doe',
+      'race-gender': 'white female',
+      age: '4',
+      clothing: 'pink pajamas',
+      descriptor: 'barefoot, on foot',
+      location: '800 Hill Avenue',
       'non-speaking': true,
       'may-hide': true,
     });
@@ -199,59 +171,39 @@ describe('autism-elopement-360 template', () => {
 describe('autism-elopement-90 template', () => {
 
   // Static text
-  test('MISSING AUTISTIC CHILD always present', () => {
-    assert.ok(render90({}).includes('MISSING AUTISTIC CHILD'));
+  test('MISSING CHILD w/ AUTISM always present', () => {
+    assert.ok(render90({}).includes('MISSING CHILD w/ AUTISM'));
   });
 
-  test('DROWNING RISK always present', () => {
-    assert.ok(render90({}).includes('DROWNING RISK'));
-  });
-
-  test('CHECK WATER/CARS always present', () => {
-    assert.ok(render90({}).includes('CHECK WATER/CARS'));
-  });
-
-  test('CALL 9-1-1 always present', () => {
-    assert.ok(render90({}).includes('CALL 9-1-1'));
+  test('SEARCH WATER FIRST always present', () => {
+    assert.ok(render90({}).includes('SEARCH WATER FIRST.'));
   });
 
   // Agency
-  test('agency wraps in brackets when present', () => {
+  test('agency renders with colon prefix (no brackets) when present', () => {
     const out = render90({ agency: 'Cary PD' });
-    assert.match(out, /^\[Cary PD\]/);
+    assert.match(out, /^Cary PD: /);
   });
 
-  test('no bracket prefix when agency is absent', () => {
+  test('no agency prefix when agency is absent', () => {
     const out = render90({});
-    assert.match(out, /^MISSING AUTISTIC CHILD/);
+    assert.match(out, /^MISSING CHILD w\/ AUTISM/);
   });
 
-  // Child details
-  test('child name, age, and clothing render before static text', () => {
-    const out = render90({ 'child-name': 'Jake Smith', age: '7', clothing: 'red shirt' });
-    assert.ok(out.includes('Jake Smith, 7, red shirt. MISSING AUTISTIC CHILD'));
+  // Descriptor: race & gender, age, clothing
+  test('race & gender, age, and clothing render between AUTISM and SEARCH', () => {
+    const out = render90({ 'race-gender': 'white female', age: '4', clothing: 'pink pajamas' });
+    assert.ok(out.includes('MISSING CHILD w/ AUTISM white female, Age 4, pink pajamas. SEARCH WATER FIRST.'));
   });
 
-  test('child name without age or clothing renders cleanly', () => {
-    const out = render90({ 'child-name': 'Jake Smith' });
-    assert.ok(out.includes('Jake Smith. MISSING AUTISTIC CHILD'));
-    assert.ok(!out.includes(', .'));
-  });
-
-  // Checkboxes
-  test('non-speaking: true includes NONSPEAKING', () => {
-    const out = render90({ 'non-speaking': true });
-    assert.ok(out.includes('NONSPEAKING'));
-  });
-
-  test('non-speaking: false omits NONSPEAKING', () => {
-    const out = render90({ 'non-speaking': false });
-    assert.ok(!out.includes('NONSPEAKING'));
+  test('static-only render has no orphan punctuation', () => {
+    const out = render90({});
+    assert.equal(out, 'MISSING CHILD w/ AUTISM. SEARCH WATER FIRST.');
   });
 
   // Smoke test — static-only render within character limit
   test('static-only render is ≤ 90 characters', () => {
-    const out = render90({ 'non-speaking': false });
+    const out = render90({});
     assert.ok(
       out.length <= 90,
       `Static alert is ${out.length} characters (limit: 90):\n${out}`

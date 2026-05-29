@@ -20,65 +20,64 @@ export default {
     'target="_blank" rel="noopener">Download the SafeSearch for Autism protocol (PDF)</a>.',
 
   template:
-    '{{#agency}}[{{agency}}]: {{/agency}}' +
+    '{{#agency}}{{agency}}: {{/agency}}' +
     'MISSING CHILD with AUTISM. EXTREME DROWNING RISK. ' +
     '{{child-name}}' +
-    '{{#description}}, {{description}}{{/description}}' +
-    '{{#age}}, age {{age}}{{/age}}' +
-    '{{#hair}}, {{hair}}{{/hair}}' +
+    '{{#age}}, Age {{age}}{{/age}}' +
+    '{{#race-gender}}, {{race-gender}}{{/race-gender}}' +
     '{{#clothing}}, {{clothing}}{{/clothing}}' +
+    '{{#descriptor}}, {{descriptor}}{{/descriptor}}' +
     '{{#non-speaking}}, NONSPEAKING{{/non-speaking}}. ' +
-    '{{#location}}LAST SEEN: {{location}}. {{/location}}' +
-    'SEARCH ALL WATER NOW (nearby ponds/pools/lakes/all types even if dirty) and inside cars.' +
+    '{{#location}}Last seen near {{location}}. {{/location}}' +
+    'SEARCH ALL WATER NOW (ponds, pools, drains, spas, tanks - even if covered or dirty) and inside cars.' +
     '{{#may-hide}} Child may HIDE.{{/may-hide}} ' +
-    'STAY AT WATER if able. IF SEEN, call 9-1-1',
+    'Stay at water if safe. IF SEEN, call 9-1-1.',
 
   fields: [
     {
       id: 'agency',
       label: 'Issuing agency',
       type: 'text',
-      placeholder: 'e.g. BPD',
+      placeholder: 'e.g. Smithtown Police Department',
     },
     {
       id: 'child-name',
       label: "Child's full name",
       type: 'text',
-      placeholder: 'e.g. John Doe',
+      placeholder: 'e.g. Jane Doe',
     },
     {
-      id: 'description',
-      label: 'Physical description',
+      id: 'race-gender',
+      label: 'Race & gender',
       type: 'text',
       placeholder: 'e.g. white female',
-      hint: 'Include race and gender',
     },
     {
       id: 'age',
       label: 'Age',
       type: 'number',
-      placeholder: 'e.g. 8',
+      placeholder: 'e.g. 4',
       min: 1,
       max: 17,
-    },
-    {
-      id: 'hair',
-      label: 'Hair',
-      type: 'text',
-      placeholder: 'e.g. brown',
-      normalize: 'hair',
     },
     {
       id: 'clothing',
       label: 'Clothing',
       type: 'text',
-      placeholder: 'e.g. blue jeans, gray t-shirt',
+      placeholder: 'e.g. pink pajamas',
+    },
+    {
+      id: 'descriptor',
+      label: 'Identifiable clothing or description',
+      type: 'text',
+      placeholder: 'e.g. barefoot',
+      hint: 'e.g. in diapers, on foot, barefoot',
     },
     {
       id: 'location',
       label: 'Last seen',
       type: 'text',
-      placeholder: 'e.g. 100 block of Main St',
+      placeholder: 'e.g. 800 Hill Avenue',
     },
   ],
 

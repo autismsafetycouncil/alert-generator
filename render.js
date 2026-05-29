@@ -28,34 +28,3 @@ export function renderTemplate(templateStr, values) {
   // Simple substitution: {{key}}
   return result.replace(/\{\{([\w-]+)\}\}/g, (_, key) => values[key] || '');
 }
-
-/**
- * Normalize a hair field value.
- * Appends " hair" if the value doesn't already contain the word "hair"
- * and isn't the special-cased word "bald".
- * @param {string} raw
- * @returns {string}
- */
-export function normalizeHair(raw) {
-  if (!raw) return '';
-  const trimmed = raw.trim();
-  if (/\bhair\b/i.test(trimmed)) return trimmed;
-  if (trimmed.toLowerCase() === 'bald') return trimmed;
-  return trimmed + ' hair';
-}
-
-/**
- * Apply field-level normalizers based on the field definition.
- * @param {Array} fields - field definitions from a template
- * @param {Record<string, string>} rawValues - values keyed by field id
- * @returns {Record<string, string>}
- */
-export function normalizeValues(fields, rawValues) {
-  const result = { ...rawValues };
-  for (const field of fields) {
-    if (field.normalize === 'hair' && result[field.id] !== undefined) {
-      result[field.id] = normalizeHair(result[field.id]);
-    }
-  }
-  return result;
-}

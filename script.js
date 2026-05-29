@@ -1,5 +1,5 @@
 import { templates } from './templates.js';
-import { renderTemplate, normalizeValues } from './render.js';
+import { renderTemplate } from './render.js';
 
 // --- State -------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ const editBtn          = document.getElementById('edit-btn');
 const copyConfirmEl    = document.getElementById('copy-confirm');
 const editingBadgeEl   = document.getElementById('editing-badge');
 const formPanel        = document.querySelector('.form-panel');
+const behaviorFieldset = document.querySelector('.behavior-fieldset');
 
 // --- Template selector -------------------------------------------------------
 
@@ -113,6 +114,7 @@ function loadTemplate(tmpl) {
   for (const cb of tmpl.checkboxes) {
     cbContainer.appendChild(buildCheckbox(cb));
   }
+  behaviorFieldset.hidden = tmpl.checkboxes.length === 0;
 
   attachFieldListeners();
   updatePreview();
@@ -136,9 +138,7 @@ function getFieldValues() {
 // --- Alert generation --------------------------------------------------------
 
 function generateAlertText() {
-  const raw = getFieldValues();
-  const normalized = normalizeValues(activeTemplate.fields, raw);
-  return renderTemplate(activeTemplate.template, normalized);
+  return renderTemplate(activeTemplate.template, getFieldValues());
 }
 
 // --- Preview + counter -------------------------------------------------------

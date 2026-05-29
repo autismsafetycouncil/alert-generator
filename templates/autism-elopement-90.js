@@ -20,30 +20,31 @@ export default {
     'target="_blank" rel="noopener">Download the SafeSearch for Autism protocol (PDF)</a>.',
 
   template:
-    '{{#agency}}[{{agency}}] {{/agency}}' +
-    '{{#child-name}}{{child-name}}{{#age}}, {{age}}{{/age}}{{#clothing}}, {{clothing}}{{/clothing}}. {{/child-name}}' +
-    'MISSING AUTISTIC CHILD. DROWNING RISK.' +
-    '{{#non-speaking}} NONSPEAKING.{{/non-speaking}} ' +
-    'CHECK WATER/CARS. CALL 9-1-1',
+    '{{#agency}}{{agency}}: {{/agency}}' +
+    'MISSING CHILD w/ AUTISM' +
+    '{{#race-gender}} {{race-gender}}{{/race-gender}}' +
+    '{{#age}}, Age {{age}}{{/age}}' +
+    '{{#clothing}}, {{clothing}}{{/clothing}}' +
+    '. SEARCH WATER FIRST.',
 
   fields: [
     {
       id: 'agency',
       label: 'Issuing agency',
       type: 'text',
-      placeholder: 'e.g. BPD',
+      placeholder: 'e.g. Smithtown Police Department',
     },
     {
-      id: 'child-name',
-      label: "Child's full name",
+      id: 'race-gender',
+      label: 'Race & gender',
       type: 'text',
-      placeholder: 'e.g. John Doe',
+      placeholder: 'e.g. white female',
     },
     {
       id: 'age',
       label: 'Age',
       type: 'number',
-      placeholder: 'e.g. 8',
+      placeholder: 'e.g. 4',
       min: 1,
       max: 17,
     },
@@ -51,16 +52,9 @@ export default {
       id: 'clothing',
       label: 'Clothing',
       type: 'text',
-      placeholder: 'e.g. red shirt',
+      placeholder: 'e.g. pink pajamas',
     },
   ],
 
-  checkboxes: [
-    {
-      id: 'non-speaking',
-      label: 'NONSPEAKING',
-      description: 'Child cannot verbally communicate or call for help',
-      default: true,
-    },
-  ],
+  checkboxes: [],
 };
