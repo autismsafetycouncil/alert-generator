@@ -183,8 +183,8 @@ describe('autism-elopement-90 template', () => {
     assert.ok(render90({}).includes('MISSING CHILD w/ AUTISM'));
   });
 
-  test('SEARCH WATER FIRST always present', () => {
-    assert.ok(render90({}).includes('SEARCH WATER FIRST.'));
+  test('SEARCH WATER NOW always present', () => {
+    assert.ok(render90({}).includes('SEARCH WATER NOW.'));
   });
 
   // Agency
@@ -201,12 +201,12 @@ describe('autism-elopement-90 template', () => {
   // Descriptor: race & gender, age, clothing
   test('race & gender, age, and clothing render between AUTISM and SEARCH', () => {
     const out = render90({ 'race-gender': 'white female', age: '4', clothing: 'pink pajamas' });
-    assert.ok(out.includes('MISSING CHILD w/ AUTISM white female, Age 4, pink pajamas. SEARCH WATER FIRST.'));
+    assert.ok(out.includes('MISSING CHILD w/ AUTISM white female, Age 4, pink pajamas. SEARCH WATER NOW.'));
   });
 
   test('static-only render has no orphan punctuation', () => {
     const out = render90({});
-    assert.equal(out, 'MISSING CHILD w/ AUTISM. SEARCH WATER FIRST.');
+    assert.equal(out, 'MISSING CHILD w/ AUTISM. SEARCH WATER NOW.');
   });
 
   // Smoke test — static-only render within character limit

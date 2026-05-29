@@ -25,7 +25,7 @@ export default {
     '{{#race-gender}} {{race-gender}}{{/race-gender}}' +
     '{{#age}}, Age {{age}}{{/age}}' +
     '{{#clothing}}, {{clothing}}{{/clothing}}' +
-    '. SEARCH WATER FIRST.',
+    '. SEARCH WATER NOW.',
 
   fields: [
     {
