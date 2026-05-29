@@ -111,13 +111,21 @@ describe('autism-elopement-360 template', () => {
 
   // Checkboxes
   test('non-speaking: true includes NONSPEAKING', () => {
-    const out = render({ 'non-speaking': true });
+    const out = render({ 'child-name': 'Alex', 'non-speaking': true });
     assert.ok(out.includes('NONSPEAKING'));
   });
 
   test('non-speaking: false omits NONSPEAKING', () => {
-    const out = render({ 'non-speaking': false });
+    const out = render({ 'child-name': 'Alex', 'non-speaking': false });
     assert.ok(!out.includes('NONSPEAKING'));
+  });
+
+  // Empty / default state — no dangling comma when no name is entered
+  test('empty render (no name) has no dangling comma before NONSPEAKING', () => {
+    const out = render({ 'non-speaking': true });
+    assert.ok(!out.includes(', NONSPEAKING'), `Dangling comma in: ${out}`);
+    assert.ok(!out.includes('RISK. ,'), `Dangling comma in: ${out}`);
+    assert.ok(out.includes('EXTREME DROWNING RISK. SEARCH ALL WATER NOW'), `Unexpected joint in: ${out}`);
   });
 
   test('may-hide: true includes "Child may HIDE."', () => {

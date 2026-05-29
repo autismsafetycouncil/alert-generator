@@ -22,12 +22,12 @@ export default {
   template:
     '{{#agency}}{{agency}}: {{/agency}}' +
     'MISSING CHILD with AUTISM. EXTREME DROWNING RISK. ' +
-    '{{child-name}}' +
+    '{{#child-name}}{{child-name}}' +
     '{{#age}}, Age {{age}}{{/age}}' +
     '{{#race-gender}}, {{race-gender}}{{/race-gender}}' +
     '{{#clothing}}, {{clothing}}{{/clothing}}' +
     '{{#descriptor}}, {{descriptor}}{{/descriptor}}' +
-    '{{#non-speaking}}, NONSPEAKING{{/non-speaking}}. ' +
+    '{{#non-speaking}}, NONSPEAKING{{/non-speaking}}. {{/child-name}}' +
     '{{#location}}Last seen near {{location}}. {{/location}}' +
     'SEARCH ALL WATER NOW (ponds, pools, drains, spas, tanks - even if covered or dirty) and inside cars.' +
     '{{#may-hide}} Child may HIDE.{{/may-hide}} ' +
